@@ -14,9 +14,11 @@ import (
 )
 
 // ファイルの内容をハイライトして返す関数
-func highlightCode(code string) (string, error) {
-	// TODO とりあえず、Goのみ ファイルの拡張子によってlexerを選択する
-	lexer := lexers.Get("go")
+func highlightCode(fileName string, code string) (string, error) {
+	lexer := lexers.Match(fileName)
+	if lexer == nil {
+		lexer = lexers.Fallback
+	}
 	iterator, err := lexer.Tokenise(nil, code)
 	if err != nil {
 		return "", err
@@ -41,7 +43,7 @@ func highlightCode(code string) (string, error) {
 
 }
 
-func cat(r *bufio.Reader) {
+func cat(r *bufio.Reader, fileName string) {
 	for {
 		// 改行文字が見つかるまで読み込む
 		buf, err := r.ReadBytes('\n')
@@ -49,7 +51,7 @@ func cat(r *bufio.Reader) {
 			break
 		}
 
-		highlighted, err := highlightCode(string(buf))
+		highlighted, err := highlightCode(fileName, string(buf))
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "Error highlighting code:", err)
 			continue
@@ -65,7 +67,7 @@ func main() {
 
 	if flag.NArg() == 0 {
 		// 引数がない場合は標準入力を表示
-		cat(bufio.NewReader(os.Stdin))
+		cat(bufio.NewReader(os.Stdin), "")
 	}
 
 	for i := 0; i < flag.NArg(); i++ {
@@ -76,7 +78,7 @@ func main() {
 			continue
 		}
 		// ファイルの内容を表示
-		cat(bufio.NewReader(f))
+		cat(bufio.NewReader(f), flag.Arg(i))
 		f.Close()
 	}
 }
