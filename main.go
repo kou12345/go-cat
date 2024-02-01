@@ -17,6 +17,7 @@ import (
 func highlightCode(fileName string, code string) (string, error) {
 	lexer := lexers.Match(fileName)
 	if lexer == nil {
+		// 言語が見つからない場合はデフォルトの言語を使用
 		lexer = lexers.Fallback
 	}
 	iterator, err := lexer.Tokenise(nil, code)
@@ -26,11 +27,13 @@ func highlightCode(fileName string, code string) (string, error) {
 
 	style := styles.Get("nord")
 	if style == nil {
+		// スタイルが見つからない場合はデフォルトのスタイルを使用
 		style = styles.Fallback
 	}
 
 	formatter := formatters.Get("terminal256")
 	if formatter == nil {
+		// フォーマッタが見つからない場合はデフォルトのフォーマッタを使用
 		formatter = formatters.Fallback
 	}
 
